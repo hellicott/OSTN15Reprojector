@@ -1,25 +1,21 @@
 from ctypes import c_int, POINTER
 
 from source.coordinates import Coordinates
+from source.datum import Datum
 from source.dll_retriever import DllRetriever
 from source.srid import SRID
-from source.datum import Datum
 
 
 class OSTN15Reprojector:
-    def __init__(self, source_srid: SRID, target_srid: SRID,
-                 revision_source=0, revision_target=2015,
-                 datum: Datum = 1, dll=None):
+    def __init__(self, source_srid: SRID, target_srid: SRID, giq_location,
+                 revision_source=0, revision_target=2015, datum: Datum = Datum.NO_DATUM):
         self.source_srid = c_int(source_srid.value)
-        self.source_revision = c_int(revision_source)
         self.target_srid = c_int(target_srid.value)
+        self.source_revision = c_int(revision_source)
         self.target_revision = c_int(revision_target)
         self.datum = c_int(datum.value)
 
-        if dll is None:
-            grid_in_quest_lib = DllRetriever().retrieve_dll()
-        else:
-            grid_in_quest_lib = dll
+        grid_in_quest_lib = DllRetriever().retrieve_dll(giq_location)
 
         self.convert_function = self.set_up_function(grid_in_quest_lib)
 

@@ -19,8 +19,7 @@ class DllRetriever:
         path = os.path.join(folder, "libGIQ.dylib")
         return CDLL(path)
 
-    def retrieve_dll(self):
-        lib_folder = os.path.split(os.path.realpath(__file__))[0]
+    def retrieve_dll(self, lib_folder):
         if sys.platform.startswith('win'):
             return self.get_windows_dll(lib_folder)
         elif sys.platform.startswith('linux'):
