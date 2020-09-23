@@ -1,48 +1,24 @@
-import os
-import sys
-
-from ctypes import c_int, CDLL, POINTER, WinDLL
+from ctypes import c_int, POINTER
 
 from source.coordinates import Coordinates
+from source.dll_retriever import DllRetriever
+from source.srid import SRID
+from source.datum import Datum
 
 
 class OSTN15Reprojector:
-    def __init__(self, source_srid, target_srid, revision_source=0, revision_target=2015, datum=1, dll=None):
-        self.source_srid = c_int(source_srid)
+    def __init__(self, source_srid: SRID, target_srid: SRID, revision_source=0, revision_target=2015, datum: Datum = 1, dll=None):
+        self.source_srid = c_int(source_srid.value)
         self.source_revision = c_int(revision_source)
-        self.target_srid = c_int(target_srid)
+        self.target_srid = c_int(target_srid.value)
         self.target_revision = c_int(revision_target)
-        self.datum = c_int(datum)
+        self.datum = c_int(datum.value)
 
         if dll is None:
-            grid_in_quest_lib = self.retrieve_dll()
+            grid_in_quest_lib = DllRetriever().retrieve_dll()
         else:
             grid_in_quest_lib = dll
         self.convert_function = self.set_up_function(grid_in_quest_lib)
-
-    @staticmethod
-    def get_windows_dll(folder):
-        path = os.path.join(folder, "GIQ.dll")
-        return WinDLL(path)
-
-    @staticmethod
-    def get_linux_dll(folder):
-        path = os.path.join(folder, "libgiq.so")
-        return CDLL(path)
-
-    @staticmethod
-    def get_darwin_dll(folder):
-        path = os.path.join(folder, "libGIQ.dylib")
-        return CDLL(path)
-
-    def retrieve_dll(self):
-        lib_folder = os.path.split(os.path.realpath(__file__))[0]
-        if sys.platform.startswith('win'):
-            return self.get_windows_dll(lib_folder)
-        elif sys.platform.startswith('linux'):
-            return self.get_linux_dll(lib_folder)
-        elif sys.platform.startswith('darwin'):
-            return self.get_darwin_dll(lib_folder)
 
     @staticmethod
     def set_up_function(grid_in_quest_lib):
